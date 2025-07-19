@@ -1,10 +1,10 @@
 * Thông tin sơ bộ của Gemini Webchat Client.
 
 * Phiên bản.
---> 2.0 (Fix lỗi javascript).
+--> 2.0 (Fix lỗi settings không cuộn được dẫn đến mất settings ở trên).
 
 * Code ( AI ).
---> HTML v1.0 từ ChatGPT. v2.0 từ Replit...
+--> Từ phiên bản v2.0, Replit được áp dụng tới 90% dự án.
 
 * Lưu ý.
 --> Ứng dụng đang được test sử dụng.
