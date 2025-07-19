@@ -3,43 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Webapp</title>
-  <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai/dist/index.umd.js"></script>
+  <title>AI Webapp - Enhanced</title>
+  <script type="module">
+    import { GoogleGenerativeAI } from 'https://cdn.skypack.dev/@google/generative-ai';
+    window.GoogleGenerativeAI = GoogleGenerativeAI;
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg: rgba(255, 255, 255, 0.6);
-      --text: #000;
+      --bg: rgba(255, 255, 255, 0.15);
+      --text: #1a1a1a;
       --accent: #0a84ff;
-      --border: rgba(0, 0, 0, 0.2);
-      --output-color: #333;
+      --border: rgba(0, 0, 0, 0.1);
+      --output-color: #2c2c2c;
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --font-size: 16px;
+      --animation-speed: 0.3s;
+      --blur-intensity: 20px;
     }
 
     body {
-      background: linear-gradient(to right, #e0e0e0, #f0f0f0);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: var(--text);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      background-color: var(--bg);
       margin: 0;
       padding: 0;
-      font-family: 'Courier New', monospace;
-      transition: all 0.3s ease;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: var(--font-size);
+      transition: all var(--animation-speed) cubic-bezier(0.4, 0, 0.2, 1);
       scroll-behavior: smooth;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
     body.dark {
-      --bg: rgba(20, 20, 20, 0.6);
+      --bg: rgba(20, 20, 20, 0.15);
       --text: #f0f0f0;
       --accent: #64d2ff;
-      --border: rgba(255, 255, 255, 0.2);
-      --output-color: #ddd;
+      --border: rgba(255, 255, 255, 0.1);
+      --output-color: #e0e0e0;
+      --glass-bg: rgba(20, 20, 20, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      transition: all 0.3s ease;
+    }
+
+    /* Morphing background animation */
+    @keyframes morphBackground {
+      0%, 100% { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scale(1) rotate(0deg);
+      }
+      25% { 
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        transform: scale(1.02) rotate(1deg);
+      }
+      50% { 
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        transform: scale(1) rotate(0deg);
+      }
+      75% { 
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        transform: scale(1.02) rotate(-1deg);
+      }
+    }
+
+    body.morph-mode {
+      animation: morphBackground 10s infinite ease-in-out;
+    }
+
+    body.dark.morph-mode {
+      animation: morphBackgroundDark 10s infinite ease-in-out;
+    }
+
+    @keyframes morphBackgroundDark {
+      0%, 100% { 
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+      }
+      25% { 
+        background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%);
+      }
+      50% { 
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      }
+      75% { 
+        background: linear-gradient(135deg, #360033 0%, #0b8793 100%);
+      }
     }
 
     .stage {
@@ -51,13 +107,25 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(14px);
-      background-color: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      backdrop-filter: blur(var(--blur-intensity)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur-intensity)) saturate(180%);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: 
+        0 8px 32px var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
       margin: 2rem auto;
       position: relative;
+      transition: all var(--animation-speed) cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(0);
+    }
+
+    .stage:hover {
+      transform: translateY(-10px);
+      box-shadow: 
+        0 20px 40px var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     .logo-container {
@@ -67,6 +135,16 @@
       z-index: 100;
       display: flex;
       align-items: center;
+      backdrop-filter: blur(var(--blur-intensity));
+      background: var(--glass-bg);
+      padding: 10px 15px;
+      border-radius: 50px;
+      border: 1px solid var(--glass-border);
+      transition: all var(--animation-speed) ease;
+    }
+
+    .logo-container:hover {
+      transform: scale(1.05);
     }
 
     .logo-image {
@@ -74,62 +152,103 @@
       height: 50px;
       border-radius: 50%;
       border: 2px solid var(--accent);
-      object-fit: cover;
       margin-right: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
     }
 
     .logo-text {
       font-size: 1rem;
-      font-weight: bold;
-      background-color: var(--bg);
-      padding: 5px 10px;
-      border-radius: 20px;
-      backdrop-filter: blur(5px);
-      border: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text);
     }
 
     .stage2 input, .stage2 textarea {
       width: 100%;
       max-width: 600px;
       margin: 0.5rem 0;
-      padding: 0.8rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(255,255,255,0.2);
+      padding: 1rem;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      background: var(--glass-bg);
       color: var(--text);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       font-size: 1rem;
-      font-family: Times New Roman, serif;
+      font-family: 'Poppins', sans-serif;
+      transition: all var(--animation-speed) ease;
+      outline: none;
+    }
+
+    .stage2 input:focus, .stage2 textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+      transform: scale(1.02);
     }
 
     .stage2 textarea {
       min-height: 120px;
+      resize: vertical;
     }
 
     button {
       margin-top: 2rem;
-      padding: 0.8rem 1.5rem;
-      background-color: var(--accent);
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #0066cc 100%);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 16px;
       cursor: pointer;
-      font-weight: bold;
-      transition: 0.3s;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all var(--animation-speed) cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
     }
 
     button:hover {
-      opacity: 0.85;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(10, 132, 255, 0.4);
+    }
+
+    button:active {
+      transform: translateY(-1px);
     }
 
     #output {
       white-space: pre-wrap;
-      font-family: Times New Roman, serif;
-      background-color: rgba(0,0,0,0.05);
-      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--glass-bg);
+      padding: 1.5rem;
       margin-top: 1rem;
-      border-radius: 10px;
+      border-radius: 16px;
       color: var(--output-color);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      max-height: 400px;
+      overflow-y: auto;
+      transition: all var(--animation-speed) ease;
+      line-height: 1.6;
     }
 
     .bubble-wrapper {
@@ -144,30 +263,116 @@
       height: 60px;
       border-radius: 50%;
       cursor: pointer;
-      border: 2px solid var(--border);
-      object-fit: cover;
-      background-color: var(--bg);
-      backdrop-filter: blur(6px);
+      border: 2px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--blur-intensity));
+      transition: all var(--animation-speed) ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 24px;
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    #bubble-logo:hover {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 8px 25px var(--shadow);
     }
 
     .bubble-menu {
       display: none;
       position: absolute;
-      bottom: 70px;
+      bottom: 80px;
       right: 0;
-      background: var(--bg);
-      padding: 1rem;
-      border-radius: 12px;
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      padding: 1.5rem;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
       font-size: 0.9rem;
       color: var(--text);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 25px var(--shadow);
+      backdrop-filter: blur(var(--blur-intensity));
+      min-width: 280px;
+      transition: all var(--animation-speed) ease;
+      transform: scale(0.8) translateY(20px);
+      opacity: 0;
+    }
+
+    .bubble-menu.show {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    .setting-group {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .setting-group:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .setting-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      background: var(--glass-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .setting-input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .range-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .range-value {
+      min-width: 40px;
+      font-weight: 500;
+      color: var(--accent);
     }
 
     @media (max-width: 768px) {
       .stage {
         width: 90%;
+        padding: 1.5rem;
+      }
+      
+      .logo-container {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin-bottom: 1rem;
+      }
+      
+      .bubble-menu {
+        right: -100px;
+        min-width: 250px;
       }
     }
 
@@ -176,103 +381,544 @@
     }
 
     @keyframes rainbow {
-      0% { color: red; }
-      16% { color: orange; }
-      33% { color: yellow; }
-      50% { color: green; }
-      66% { color: blue; }
-      83% { color: indigo; }
-      100% { color: violet; }
+      0% { color: #ff0000; }
+      16% { color: #ff8000; }
+      33% { color: #ffff00; }
+      50% { color: #00ff00; }
+      66% { color: #0080ff; }
+      83% { color: #8000ff; }
+      100% { color: #ff0000; }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .loading {
+      position: relative;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--accent);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      transform: translateY(-50%);
+    }
+
+    @keyframes spin {
+      0% { transform: translateY(-50%) rotate(0deg); }
+      100% { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    .error {
+      color: #ff4757;
+      background: rgba(255, 71, 87, 0.1);
+      border-color: rgba(255, 71, 87, 0.3);
+    }
+
+    .success {
+      color: #2ed573;
+      background: rgba(46, 213, 115, 0.1);
+      border-color: rgba(46, 213, 115, 0.3);
+    }
+
+    /* Floating particles effect */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: float 6s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="particles" id="particles"></div>
 
   <div class="logo-container">
-    <img src="logo.png" alt="Logo" class="logo-image">
-    <div class="logo-text">Dự án Web-Client Gemini v1.0 ( AI ).</div>
+    <div class="logo-image">AI</div>
+    <div class="logo-text">Dự án Web-Client Gemini v2.0 ( AI )</div>
   </div>
 
   <div class="bubble-wrapper">
-    <img src="logo2.png" alt="Settings" id="bubble-logo" />
+    <div id="bubble-logo">
+      <i class="fas fa-cog"></i>
+    </div>
     <div class="bubble-menu" id="bubble-menu">
-      <label><input type="checkbox" id="darkModeToggle" /> Dark mode</label><br/>
-      <label>Accent: <input type="color" id="colorPicker" /></label><br/>
-      <label>Text: <input type="color" id="textColorPicker" /></label><br/>
-      <label><input type="checkbox" id="rainbowToggle" /> Rainbow</label>
+      <div class="setting-group">
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="darkModeToggle" />
+          <label class="setting-label" for="darkModeToggle">Dark Mode</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="morphToggle" />
+          <label class="setting-label" for="morphToggle">Morphing Background</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="particlesToggle" checked />
+          <label class="setting-label" for="particlesToggle">Floating Particles</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="rainbowToggle" />
+          <label class="setting-label" for="rainbowToggle">Rainbow Text</label>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Accent Color</label>
+        <input type="color" id="colorPicker" class="setting-input" value="#0a84ff" />
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Font Size</label>
+        <div class="range-wrapper">
+          <input type="range" id="fontSizeSlider" min="12" max="24" value="16" class="setting-input" />
+          <span class="range-value" id="fontSizeValue">16px</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Animation Speed</label>
+        <div class="range-wrapper">
+          <input type="range" id="animationSpeedSlider" min="0.1" max="1" step="0.1" value="0.3" class="setting-input" />
+          <span class="range-value" id="animationSpeedValue">0.3s</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Blur Intensity</label>
+        <div class="range-wrapper">
+          <input type="range" id="blurSlider" min="5" max="40" value="20" class="setting-input" />
+          <span class="range-value" id="blurValue">20px</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Transparency Level</label>
+        <div class="range-wrapper">
+          <input type="range" id="transparencySlider" min="0.1" max="0.9" step="0.1" value="0.25" class="setting-input" />
+          <span class="range-value" id="transparencyValue">0.25</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label class="setting-label">Model Temperature</label>
+        <div class="range-wrapper">
+          <input type="range" id="temperatureSlider" min="0" max="2" step="0.1" value="1" class="setting-input" />
+          <span class="range-value" id="temperatureValue">1.0</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="typingEffect" checked />
+          <label class="setting-label" for="typingEffect">Typing Effect</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="autoSave" checked />
+          <label class="setting-label" for="autoSave">Auto Save Settings</label>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="stage stage1">
-    <div class="line" style="font-size: 1.5rem; margin-bottom: 1rem;">[ Một dự án chạy Gemini chatbot web. Bởi HoNgocLinhTrangUwU. ]</div>
-    <div class="line" style="font-size: 1.0rem; margin-bottom: 1rem;">( Phương thức liên hệ : hongoclinhtranguwu@gmail.com )</div>
-    <div class="line" style="font-size: 1.5rem; margin-bottom: 1rem;">[ Bạn có muốn nghịch một tí không? ]</div>
-    <div class="line" style="font-size: 1.0rem;">↓</div>
-    <button onclick="document.getElementById('stage2').scrollIntoView({behavior:'smooth'})">[ Bắt Đầu ]</button>
+    <div class="line" style="font-size: 1.8rem; margin-bottom: 1rem; font-weight: 600;">[ Một dự án chạy Gemini chatbot web. Bởi HoNgocLinhTrangUwU. ]</div>
+    <div class="line" style="font-size: 1.1rem; margin-bottom: 1rem; opacity: 0.8;">( Phương thức liên hệ : hongoclinhtranguwu@gmail.com )</div>
+    <div class="line" style="font-size: 1.6rem; margin-bottom: 1rem; font-weight: 500;">[ Bạn có muốn nghịch một tí không? ]</div>
+    <div class="line" style="font-size: 1.2rem;">↓</div>
+    <button onclick="document.getElementById('stage2').scrollIntoView({behavior:'smooth'})">
+      <i class="fas fa-rocket" style="margin-right: 0.5rem;"></i>
+      [ Bắt Đầu ]
+    </button>
   </div>
 
   <div class="stage stage2" id="stage2">
-    <input type="text" placeholder="API Key..." id="apiKey" />
-    <input type="text" placeholder="Model (vd: gemini-pro)" id="modelInput" />
-    <textarea placeholder="Nhập prompt AI..." id="promptInput"></textarea>
-    <button onclick="simulateAI()">[ Gửi ]</button>
-    <div id="output">Kết quả sẽ hiện tại đây.</div>
+    <input type="password" placeholder="🔑 API Key (Gemini)..." id="apiKey" />
+    <input type="text" placeholder="🤖 Model (mặc định: gemini-2.5-flash)" id="modelInput" />
+    <textarea placeholder="💬 Nhập prompt AI của bạn..." id="promptInput"></textarea>
+    <button onclick="simulateAI()">
+      <i class="fas fa-paper-plane" style="margin-right: 0.5rem;"></i>
+      [ Gửi Yêu Cầu ]
+    </button>
+    <div id="output">🎯 Kết quả sẽ hiện tại đây. Vui lòng nhập API key và prompt để bắt đầu.</div>
   </div>
 
   <script>
+    // Initialize settings and UI
     const logo = document.getElementById("bubble-logo");
     const menu = document.getElementById("bubble-menu");
+    const particles = document.getElementById("particles");
+    
+    // Bubble menu toggle
     logo.addEventListener("click", () => {
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
+      const isVisible = menu.style.display === "block";
+      menu.style.display = isVisible ? "none" : "block";
+      
+      if (!isVisible) {
+        setTimeout(() => menu.classList.add("show"), 10);
+      } else {
+        menu.classList.remove("show");
+      }
     });
 
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!logo.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+        menu.classList.remove("show");
+      }
+    });
+
+    // Dark mode toggle
     document.getElementById("darkModeToggle").addEventListener("change", e => {
       document.body.classList.toggle("dark", e.target.checked);
+      localStorage.setItem("darkMode", e.target.checked);
     });
 
+    // Morphing background toggle
+    document.getElementById("morphToggle").addEventListener("change", e => {
+      document.body.classList.toggle("morph-mode", e.target.checked);
+      localStorage.setItem("morphMode", e.target.checked);
+    });
+
+    // Particles toggle
+    document.getElementById("particlesToggle").addEventListener("change", e => {
+      if (e.target.checked) {
+        createParticles();
+      } else {
+        particles.innerHTML = "";
+      }
+      localStorage.setItem("particles", e.target.checked);
+    });
+
+    // Color picker
     document.getElementById("colorPicker").addEventListener("input", e => {
       document.documentElement.style.setProperty("--accent", e.target.value);
+      localStorage.setItem("accentColor", e.target.value);
     });
 
-    document.getElementById("textColorPicker").addEventListener("input", e => {
-      document.body.style.color = e.target.value;
-      document.querySelectorAll(".line").forEach(el => el.style.color = e.target.value);
-      document.querySelectorAll("input, textarea, button").forEach(el => el.style.color = e.target.value);
+    // Font size slider
+    const fontSizeSlider = document.getElementById("fontSizeSlider");
+    const fontSizeValue = document.getElementById("fontSizeValue");
+    fontSizeSlider.addEventListener("input", e => {
+      const size = e.target.value + "px";
+      document.documentElement.style.setProperty("--font-size", size);
+      fontSizeValue.textContent = size;
+      localStorage.setItem("fontSize", e.target.value);
     });
 
+    // Animation speed slider
+    const animationSpeedSlider = document.getElementById("animationSpeedSlider");
+    const animationSpeedValue = document.getElementById("animationSpeedValue");
+    animationSpeedSlider.addEventListener("input", e => {
+      const speed = e.target.value + "s";
+      document.documentElement.style.setProperty("--animation-speed", speed);
+      animationSpeedValue.textContent = speed;
+      localStorage.setItem("animationSpeed", e.target.value);
+    });
+
+    // Blur intensity slider
+    const blurSlider = document.getElementById("blurSlider");
+    const blurValue = document.getElementById("blurValue");
+    blurSlider.addEventListener("input", e => {
+      const blur = e.target.value + "px";
+      document.documentElement.style.setProperty("--blur-intensity", blur);
+      blurValue.textContent = blur;
+      localStorage.setItem("blurIntensity", e.target.value);
+    });
+
+    // Rainbow text toggle
     document.getElementById("rainbowToggle").addEventListener("change", e => {
       document.querySelectorAll(".line").forEach(line => {
-        if (e.target.checked) {
-          line.classList.add("rainbow");
-        } else {
-          line.classList.remove("rainbow");
-        }
+        line.classList.toggle("rainbow", e.target.checked);
       });
+      localStorage.setItem("rainbowText", e.target.checked);
     });
 
-    async function simulateAI() {
-      const prompt = document.getElementById("promptInput").value;
-      const apiKey = document.getElementById("apiKey").value;
-      const modelId = document.getElementById("modelInput").value || "gemini-pro";
-      const output = document.getElementById("output");
+    // Create floating particles
+    function createParticles() {
+      particles.innerHTML = "";
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.animationDelay = Math.random() * 6 + "s";
+        particle.style.animationDuration = (Math.random() * 3 + 3) + "s";
+        particles.appendChild(particle);
+      }
+    }
 
-      if (!apiKey || !prompt) {
-        output.textContent = "Vui lòng nhập đầy đủ API key và prompt.";
+    // Load saved settings
+    function loadSettings() {
+      // Dark mode
+      const darkMode = localStorage.getItem("darkMode") === "true";
+      document.getElementById("darkModeToggle").checked = darkMode;
+      document.body.classList.toggle("dark", darkMode);
+
+      // Morph mode
+      const morphMode = localStorage.getItem("morphMode") === "true";
+      document.getElementById("morphToggle").checked = morphMode;
+      document.body.classList.toggle("morph-mode", morphMode);
+
+      // Particles
+      const particlesEnabled = localStorage.getItem("particles") !== "false";
+      document.getElementById("particlesToggle").checked = particlesEnabled;
+      if (particlesEnabled) createParticles();
+
+      // Accent color
+      const accentColor = localStorage.getItem("accentColor") || "#0a84ff";
+      document.getElementById("colorPicker").value = accentColor;
+      document.documentElement.style.setProperty("--accent", accentColor);
+
+      // Font size
+      const fontSize = localStorage.getItem("fontSize") || "16";
+      fontSizeSlider.value = fontSize;
+      fontSizeValue.textContent = fontSize + "px";
+      document.documentElement.style.setProperty("--font-size", fontSize + "px");
+
+      // Animation speed
+      const animationSpeed = localStorage.getItem("animationSpeed") || "0.3";
+      animationSpeedSlider.value = animationSpeed;
+      animationSpeedValue.textContent = animationSpeed + "s";
+      document.documentElement.style.setProperty("--animation-speed", animationSpeed + "s");
+
+      // Blur intensity
+      const blurIntensity = localStorage.getItem("blurIntensity") || "20";
+      blurSlider.value = blurIntensity;
+      blurValue.textContent = blurIntensity + "px";
+      document.documentElement.style.setProperty("--blur-intensity", blurIntensity + "px");
+
+      // Rainbow text
+      const rainbowText = localStorage.getItem("rainbowText") === "true";
+      document.getElementById("rainbowToggle").checked = rainbowText;
+      if (rainbowText) {
+        document.querySelectorAll(".line").forEach(line => {
+          line.classList.add("rainbow");
+        });
+      }
+    }
+
+    // Add new settings handlers
+    const transparencySlider = document.getElementById("transparencySlider");
+    const transparencyValue = document.getElementById("transparencyValue");
+    transparencySlider.addEventListener("input", e => {
+      const opacity = e.target.value;
+      document.documentElement.style.setProperty("--glass-bg", `rgba(255, 255, 255, ${opacity})`);
+      transparencyValue.textContent = opacity;
+      localStorage.setItem("transparency", opacity);
+    });
+
+    const temperatureSlider = document.getElementById("temperatureSlider");
+    const temperatureValue = document.getElementById("temperatureValue");
+    temperatureSlider.addEventListener("input", e => {
+      temperatureValue.textContent = parseFloat(e.target.value).toFixed(1);
+      localStorage.setItem("temperature", e.target.value);
+    });
+
+    // Enhanced AI function with proper Gemini integration
+    async function simulateAI() {
+      const prompt = document.getElementById("promptInput").value.trim();
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const modelId = document.getElementById("modelInput").value.trim() || "gemini-2.5-flash";
+      const output = document.getElementById("output");
+      const button = document.querySelector("button[onclick='simulateAI()']");
+      const temperature = parseFloat(localStorage.getItem("temperature") || "1");
+      const typingEffect = document.getElementById("typingEffect").checked;
+
+      // Reset output styling
+      output.className = "";
+      
+      // Validation
+      if (!apiKey) {
+        output.textContent = "❌ Vui lòng nhập API key của Gemini.";
+        output.classList.add("error");
+        return;
+      }
+      
+      if (!prompt) {
+        output.textContent = "❌ Vui lòng nhập prompt để gửi cho AI.";
+        output.classList.add("error");
         return;
       }
 
       try {
-        const genAI = new google.generativeai.GenerativeModel({
+        // Show loading state
+        output.textContent = "🔄 Đang kết nối với Gemini AI...";
+        output.classList.add("loading");
+        button.disabled = true;
+        button.style.opacity = "0.6";
+
+        // Initialize Google Generative AI
+        const genAI = new window.GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ 
           model: modelId,
-          apiKey: apiKey
+          generationConfig: {
+            temperature: temperature,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          }
         });
 
-        output.textContent = "⏳ Đang gửi yêu cầu...";
-        const result = await genAI.generateContent(prompt);
+        // Update loading message
+        output.textContent = "🤖 Đang xử lý yêu cầu...";
+
+        // Generate content
+        const result = await model.generateContent(prompt);
         const response = await result.response;
-        output.textContent = response.text();
+        const text = response.text();
+
+        // Remove loading state
+        output.classList.remove("loading");
+        output.classList.add("success");
+
+        // Display result with typing effect
+        if (typingEffect) {
+          await typeWriter(output, `✅ Phản hồi từ ${modelId}:\n\n${text}`);
+        } else {
+          output.textContent = `✅ Phản hồi từ ${modelId}:\n\n${text}`;
+        }
+
       } catch (error) {
-        output.textContent = "Đã xảy ra lỗi: " + error.message;
+        console.error("Error:", error);
+        output.classList.remove("loading");
+        output.classList.add("error");
+        
+        let errorMessage = "❌ Lỗi: ";
+        if (error.message.includes("API key")) {
+          errorMessage += "API key không hợp lệ. Vui lòng kiểm tra lại.";
+        } else if (error.message.includes("quota")) {
+          errorMessage += "Đã vượt quá giới hạn sử dụng API.";
+        } else if (error.message.includes("network")) {
+          errorMessage += "Lỗi kết nối mạng. Vui lòng thử lại.";
+        } else {
+          errorMessage += error.message;
+        }
+        
+        output.textContent = errorMessage;
+      } finally {
+        button.disabled = false;
+        button.style.opacity = "1";
+      }
+    }
+
+    // Typing effect function
+    async function typeWriter(element, text) {
+      element.textContent = "";
+      for (let i = 0; i < text.length; i++) {
+        element.textContent += text.charAt(i);
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+    }
+
+    // Enhanced load settings with new options
+    function loadEnhancedSettings() {
+      // Load all existing settings
+      loadSettings();
+      
+      // Load transparency
+      const transparency = localStorage.getItem("transparency") || "0.25";
+      transparencySlider.value = transparency;
+      transparencyValue.textContent = transparency;
+      document.documentElement.style.setProperty("--glass-bg", `rgba(255, 255, 255, ${transparency})`);
+      
+      // Load temperature
+      const temperature = localStorage.getItem("temperature") || "1";
+      temperatureSlider.value = temperature;
+      temperatureValue.textContent = parseFloat(temperature).toFixed(1);
+      
+      // Load typing effect
+      const typingEffect = localStorage.getItem("typingEffect") !== "false";
+      document.getElementById("typingEffect").checked = typingEffect;
+      
+      // Load auto save
+      const autoSave = localStorage.getItem("autoSave") !== "false";
+      document.getElementById("autoSave").checked = autoSave;
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      // Ctrl+Enter to send message
+      if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault();
+        simulateAI();
+      }
+      
+      // Escape to close settings menu
+      if (e.key === "Escape") {
+        menu.style.display = "none";
+        menu.classList.remove("show");
+      }
+    });
+
+    // Initialize the application
+    document.addEventListener("DOMContentLoaded", () => {
+      loadEnhancedSettings();
+      
+      // Create initial particles
+      if (document.getElementById("particlesToggle").checked) {
+        createParticles();
+      }
+      
+      // Add smooth scrolling to inputs
+      document.querySelectorAll("input, textarea").forEach(input => {
+        input.addEventListener("focus", () => {
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
+    });
+
+    // Auto-save API key (optional)
+    document.getElementById("apiKey").addEventListener("input", (e) => {
+      if (document.getElementById("autoSave").checked && e.target.value.length > 10) {
+        localStorage.setItem("geminiApiKey", e.target.value);
+      }
+    });
+
+    // Load saved API key if auto-save is enabled
+    if (localStorage.getItem("autoSave") !== "false") {
+      const savedKey = localStorage.getItem("geminiApiKey");
+      if (savedKey) {
+        document.getElementById("apiKey").value = savedKey;
       }
     }
   </script>
