@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Webapp</title>
+  <script src="https://cdn.jsdelivr.net/npm/@google/generative-ai/dist/index.umd.js"></script>
+  <style>
+    :root {
+      --bg: rgba(255, 255, 255, 0.6);
+      --text: #000;
+      --accent: #0a84ff;
+      --border: rgba(0, 0, 0, 0.2);
+      --output-color: #333;
+    }
+
+    body {
+      background: linear-gradient(to right, #e0e0e0, #f0f0f0);
+      color: var(--text);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+      scroll-behavior: smooth;
+    }
+
+    body.dark {
+      --bg: rgba(20, 20, 20, 0.6);
+      --text: #f0f0f0;
+      --accent: #64d2ff;
+      --border: rgba(255, 255, 255, 0.2);
+      --output-color: #ddd;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    .stage {
+      min-height: 100vh;
+      width: 75%;
+      max-width: 1000px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(14px);
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      margin: 2rem auto;
+      position: relative;
+    }
+
+    .logo-container {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      object-fit: cover;
+      margin-right: 10px;
+    }
+
+    .logo-text {
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: var(--bg);
+      padding: 5px 10px;
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+      border: 1px solid var(--border);
+    }
+
+    .stage2 input, .stage2 textarea {
+      width: 100%;
+      max-width: 600px;
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.2);
+      color: var(--text);
+      backdrop-filter: blur(8px);
+      font-size: 1rem;
+      font-family: Times New Roman, serif;
+    }
+
+    .stage2 textarea {
+      min-height: 120px;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.8rem 1.5rem;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    #output {
+      white-space: pre-wrap;
+      font-family: Times New Roman, serif;
+      background-color: rgba(0,0,0,0.05);
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 10px;
+      color: var(--output-color);
+    }
+
+    .bubble-wrapper {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    #bubble-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--border);
+      object-fit: cover;
+      background-color: var(--bg);
+      backdrop-filter: blur(6px);
+    }
+
+    .bubble-menu {
+      display: none;
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      background: var(--bg);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      backdrop-filter: blur(12px);
+    }
+
+    @media (max-width: 768px) {
+      .stage {
+        width: 90%;
+      }
+    }
+
+    .rainbow {
+      animation: rainbow 4s linear infinite;
+    }
+
+    @keyframes rainbow {
+      0% { color: red; }
+      16% { color: orange; }
+      33% { color: yellow; }
+      50% { color: green; }
+      66% { color: blue; }
+      83% { color: indigo; }
+      100% { color: violet; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo-container">
+    <img src="logo.png" alt="Logo" class="logo-image">
+    <div class="logo-text">Dự án Web-Client Gemini v1.0 ( AI ).</div>
+  </div>
+
+  <div class="bubble-wrapper">
+    <img src="logo2.png" alt="Settings" id="bubble-logo" />
+    <div class="bubble-menu" id="bubble-menu">
+      <label><input type="checkbox" id="darkModeToggle" /> Dark mode</label><br/>
+      <label>Accent: <input type="color" id="colorPicker" /></label><br/>
+      <label>Text: <input type="color" id="textColorPicker" /></label><br/>
+      <label><input type="checkbox" id="rainbowToggle" /> Rainbow</label>
+    </div>
+  </div>
+
+  <div class="stage stage1">
+    <div class="line" style="font-size: 1.5rem; margin-bottom: 1rem;">[ Một dự án chạy Gemini chatbot web. Bởi HoNgocLinhTrangUwU. ]</div>
+    <div class="line" style="font-size: 1.0rem; margin-bottom: 1rem;">( Phương thức liên hệ : hongoclinhtranguwu@gmail.com )</div>
+    <div class="line" style="font-size: 1.5rem; margin-bottom: 1rem;">[ Bạn có muốn nghịch một tí không? ]</div>
+    <div class="line" style="font-size: 1.0rem;">↓</div>
+    <button onclick="document.getElementById('stage2').scrollIntoView({behavior:'smooth'})">[ Bắt Đầu ]</button>
+  </div>
+
+  <div class="stage stage2" id="stage2">
+    <input type="text" placeholder="API Key..." id="apiKey" />
+    <input type="text" placeholder="Model (vd: gemini-pro)" id="modelInput" />
+    <textarea placeholder="Nhập prompt AI..." id="promptInput"></textarea>
+    <button onclick="simulateAI()">[ Gửi ]</button>
+    <div id="output">Kết quả sẽ hiện tại đây.</div>
+  </div>
+
+  <script>
+    const logo = document.getElementById("bubble-logo");
+    const menu = document.getElementById("bubble-menu");
+    logo.addEventListener("click", () => {
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    document.getElementById("darkModeToggle").addEventListener("change", e => {
+      document.body.classList.toggle("dark", e.target.checked);
+    });
+
+    document.getElementById("colorPicker").addEventListener("input", e => {
+      document.documentElement.style.setProperty("--accent", e.target.value);
+    });
+
+    document.getElementById("textColorPicker").addEventListener("input", e => {
+      document.body.style.color = e.target.value;
+      document.querySelectorAll(".line").forEach(el => el.style.color = e.target.value);
+      document.querySelectorAll("input, textarea, button").forEach(el => el.style.color = e.target.value);
+    });
+
+    document.getElementById("rainbowToggle").addEventListener("change", e => {
+      document.querySelectorAll(".line").forEach(line => {
+        if (e.target.checked) {
+          line.classList.add("rainbow");
+        } else {
+          line.classList.remove("rainbow");
+        }
+      });
+    });
+
+    async function simulateAI() {
+      const prompt = document.getElementById("promptInput").value;
+      const apiKey = document.getElementById("apiKey").value;
+      const modelId = document.getElementById("modelInput").value || "gemini-pro";
+      const output = document.getElementById("output");
+
+      if (!apiKey || !prompt) {
+        output.textContent = "Vui lòng nhập đầy đủ API key và prompt.";
+        return;
+      }
+
+      try {
+        const genAI = new google.generativeai.GenerativeModel({
+          model: modelId,
+          apiKey: apiKey
+        });
+
+        output.textContent = "⏳ Đang gửi yêu cầu...";
+        const result = await genAI.generateContent(prompt);
+        const response = await result.response;
+        output.textContent = response.text();
+      } catch (error) {
+        output.textContent = "Đã xảy ra lỗi: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
